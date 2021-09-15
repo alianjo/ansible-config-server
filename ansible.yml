@@ -1,0 +1,38 @@
+# we are going to secure SSH and create User and give it permissions on ubuntu
+---
+- hosts: all
+  become: true
+  tasks:
+  - name: make SSH more secure
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: "{{ item.regexp }}"
+      line: "{{ item.line }}"
+      state: present
+    with_items:
+      - regexp: "^#PasswordAuthentication"
+        line: "PasswordAuthentication no"
+      - regexp: "^#PermitRootLogin"
+        line: "PermitRootLogin no"
+      - regexp: "^#Port"
+        line: "Port 2222"
+    notify: restart ssh
+  - name: add new user Bryan
+    user:
+      name: bryan
+  - name: increase bryan privilages
+    lineinfile:
+      dest: /etc/sudoers
+      regexp: "^bryan"
+      line: "bryan  ALL=(ALL) NOPASSWD: ALL"
+      state: present
+
+
+
+
+  handlers:
+    - name: restart ssh
+      service:
+        name: ssh
+        state: restarted
+
